@@ -41,6 +41,9 @@ APhysicsCharacter::APhysicsCharacter()
 void APhysicsCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	m_CurrentStamina = m_MaxStamina;
+	bBlockSprint = false;
 }
 
 void APhysicsCharacter::Tick(float DeltaSeconds)
@@ -48,10 +51,11 @@ void APhysicsCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	// @TODO: Stamina update
-
+	UpdateStamina(DeltaSeconds);
 	// @TODO: Physics objects highlight
-
+	FindGrabbableObjects();
 	// @TODO: Grabbed object update
+	UpdateGrabbedObject();
 }
 
 void APhysicsCharacter::NotifyControllerChanged()
@@ -90,7 +94,14 @@ void APhysicsCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void APhysicsCharacter::SetIsSprinting(bool NewIsSprinting)
 {
-	// @TODO: Enable/disable sprinting use CharacterMovementComponent
+	bIsTryingToRun = NewIsSprinting;
+	
+	if (!NewIsSprinting){
+		bBlockSprint = false;
+	}
+	
+	const bool bCanSprint = NewIsSprinting && m_CurrentStamina > 0.0f && !bBlockSprint;
+	GetCharacterMovement()->MaxWalkSpeed = bCanSprint ? m_SprintSpeed : m_WalkSpeed;
 }
 
 void APhysicsCharacter::Move(const FInputActionValue& Value)
@@ -126,12 +137,25 @@ void APhysicsCharacter::Sprint(const FInputActionValue& Value)
 
 void APhysicsCharacter::GrabObject(const FInputActionValue& Value)
 {
-	// @TODO: Grab objects using UPhysicsHandleComponent
+	if ( !m_GrabComponent){
+		const FHitResult Hit = RayCast();
+		
+		if (!Hit.GetActor() || !(Hit.GetComponent()->Mobility == EComponentMobility::Movable)){
+			return;
+		}
+		m_GrabComponent = Hit.GetActor()->GetComponentByClass<UPrimitiveComponent>();
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, (TEXT("Grabbing: %s"), *m_GrabComponent->GetName()));
+		m_PhysicsHandle->GrabComponentAtLocationWithRotation(m_GrabComponent, Hit.BoneName, Hit.Location, Hit.GetActor()->GetActorRotation());
+		m_DistanceGrabbedObject = Hit.Distance;
+	}
 }
 
 void APhysicsCharacter::ReleaseObject(const FInputActionValue& Value)
 {
-	// @TODO: Release grabebd object using UPhysicsHandleComponent
+	m_DistanceGrabbedObject = 0.0f;
+	m_GrabComponent = nullptr;
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, (TEXT("UN GRAB")));
+	m_PhysicsHandle->ReleaseComponent();
 }
 
 void APhysicsCharacter::SetHighlightedMesh(UMeshComponent* StaticMesh)
@@ -145,4 +169,49 @@ void APhysicsCharacter::SetHighlightedMesh(UMeshComponent* StaticMesh)
 	{
 		m_HighlightedMesh->SetOverlayMaterial(m_HighlightMaterial);
 	}
+}
+
+void APhysicsCharacter::UpdateStamina(float DeltaSeconds)
+{
+	if (const bool bIsSprinting = GetCharacterMovement()->GetVelocityForNavMovement().Length() > m_WalkSpeed * 1.1f){
+		m_CurrentStamina= m_CurrentStamina - m_StaminaDepletionRate * DeltaSeconds;
+		m_CurrentStamina = FMath::Max(0.0f, m_CurrentStamina);
+
+		bBlockSprint = m_CurrentStamina <= KINDA_SMALL_NUMBER;
+	}
+	else{
+		m_CurrentStamina += m_StaminaRecoveryRate * DeltaSeconds;
+		m_CurrentStamina = FMath::Min(m_CurrentStamina, m_MaxStamina);
+	}
+}
+
+FHitResult APhysicsCharacter::RayCast() const
+{
+	FHitResult Hit;
+	FVector Start = GetActorLocation() + FirstPersonCameraComponent->GetRelativeLocation();
+	FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * m_MaxGrabDistance);
+	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility);
+	return Hit;
+}
+
+void APhysicsCharacter::FindGrabbableObjects()
+{
+	const FHitResult Hit = RayCast();
+	
+	if (auto* MeshComponent = Cast<UMeshComponent>(Hit.GetComponent())){
+		if (MeshComponent->Mobility == EComponentMobility::Movable && MeshComponent->IsSimulatingPhysics()){
+			SetHighlightedMesh(MeshComponent);
+		}
+	}
+}
+
+void APhysicsCharacter::UpdateGrabbedObject()
+{
+	if (!m_GrabComponent)return;
+	
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, (TEXT("Grabbing: %s"), *m_GrabComponent->GetName()));
+	
+	FVector Forward = FirstPersonCameraComponent->GetForwardVector();
+	FVector Location = GetActorLocation() + Forward * m_DistanceGrabbedObject;
+	m_PhysicsHandle->SetTargetLocation(Location);
 }

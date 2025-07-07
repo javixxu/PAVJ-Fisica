@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Logging/LogMacros.h"
 #include "PhysicsCharacter.generated.h"
 
@@ -58,6 +59,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
 	float m_SprintSpeedMultiplier;
 
+	/**Current Stamina*/
+	float m_CurrentStamina;
+	
 	/** Maximum stamina, used when sprinting */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
 	float m_MaxStamina;
@@ -86,6 +90,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
 	float m_BaseInterpolationSpeed = 1000.f;
 
+	/**Sprint Speed*/
+	float m_SprintSpeed = 2000.0f;
+	
+	/**Walk Normal Speed*/
+	float m_WalkSpeed = 600.0f;
+
+	bool bBlockSprint;
+	bool bIsTryingToRun = false;
+	
+	float m_DistanceGrabbedObject;
+	TObjectPtr<UPrimitiveComponent> m_GrabComponent;
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DebugData, meta = (AllowPrivateAccess = "true"))
 	UMeshComponent* m_HighlightedMesh = nullptr;
@@ -112,10 +128,19 @@ protected:
 
 	void SetHighlightedMesh(UMeshComponent* StaticMesh);
 
+	void UpdateStamina(float DeltaSeconds);
+
+	FHitResult RayCast() const;
+	
+	void FindGrabbableObjects();
+
+	void UpdateGrabbedObject();
+	
 public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 	void SetIsSprinting(bool NewIsSprinting);
 
+	UFUNCTION(BlueprintCallable)
+	float GetStamina() const {return m_CurrentStamina;};
 };
-
