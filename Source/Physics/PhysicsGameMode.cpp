@@ -18,10 +18,22 @@ APhysicsGameMode::APhysicsGameMode()
 void APhysicsGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	// @TODO: Get total and current target configuration
+	ABreakableTarget::OnBreakTarget.AddDynamic(this, &APhysicsGameMode::ReduceRemainingTargets);
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABreakableTarget::StaticClass(), FoundActors);
+	m_TotalTargets = FoundActors.Num();
+	m_RemainingTargets = m_TotalTargets;
 }
 
 void APhysicsGameMode::ReduceRemainingTargets(ABreakableTarget* BrokenTarget)
 {
 	// @TODO: make sure to notify other components, including blueprints
+	
+	m_RemainingTargets--;
+	OnTargetCountChange.Broadcast();
+	
+	if (m_RemainingTargets <= 0)
+		OnWinConditionMet.Broadcast();
 }

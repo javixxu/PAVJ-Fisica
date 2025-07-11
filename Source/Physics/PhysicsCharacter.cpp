@@ -43,6 +43,8 @@ void APhysicsCharacter::BeginPlay()
 	
 	m_CurrentStamina = m_MaxStamina;
 	bBlockSprint = false;
+
+	m_CurrentHealth = m_MaxHealth;
 }
 
 void APhysicsCharacter::Tick(float DeltaSeconds)
@@ -104,6 +106,11 @@ void APhysicsCharacter::SetIsSprinting(bool NewIsSprinting)
 	GetCharacterMovement()->MaxWalkSpeed = bCanSprint ? m_fSprintSpeed : m_fWalkSpeed;
 }
 
+void APhysicsCharacter::ChangeLife(float LifeAmount)
+{
+	m_CurrentHealth += LifeAmount;
+}
+
 void APhysicsCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -158,7 +165,7 @@ void APhysicsCharacter::ReleaseObject(const FInputActionValue& Value)
 	m_PhysicsHandle->ReleaseComponent();
 }
 
-void APhysicsCharacter::SetHighlightedMesh(UMeshComponent* StaticMesh)
+void APhysicsCharacter::SetHighlightMesh(UMeshComponent* StaticMesh)
 {
 	if(m_HighlightedMesh)
 	{
@@ -203,7 +210,7 @@ void APhysicsCharacter::FindGrabbableObjects()
 	if (auto* MeshComponent = Cast<UMeshComponent>(Hit.GetComponent())){
 		if (MeshComponent->Mobility == EComponentMobility::Movable && MeshComponent->IsSimulatingPhysics())
 		{
-			SetHighlightedMesh(MeshComponent);
+			SetHighlightMesh(MeshComponent);
 		}
 	}
 }

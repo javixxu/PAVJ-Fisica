@@ -78,6 +78,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
 	float m_MaxHealth;
 
+	/**Current Health*/
+	float m_CurrentHealth;
+	
 	/** Highlight overlay material */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
 	class UMaterialInterface* m_HighlightMaterial;
@@ -126,7 +129,7 @@ protected:
 	void GrabObject(const FInputActionValue& Value);
 	void ReleaseObject(const FInputActionValue& Value);
 
-	void SetHighlightedMesh(UMeshComponent* StaticMesh);
+	void SetHighlightMesh(UMeshComponent* StaticMesh);
 
 	void UpdateStamina(float DeltaSeconds);
 
@@ -139,8 +142,15 @@ protected:
 public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	
 	void SetIsSprinting(bool NewIsSprinting);
 
 	UFUNCTION(BlueprintCallable)
 	float GetStamina() const {return m_CurrentStamina;};
+
+	UFUNCTION(BlueprintCallable)
+	void ChangeLife(float LifeAmount);
+	
+	UFUNCTION(BlueprintCallable)
+	float GetHealth() const {return m_CurrentHealth;};
 };
