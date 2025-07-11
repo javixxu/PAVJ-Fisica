@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PhysicsProjectile.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "WeaponDamageType.h"
 #include "PhysicsWeaponComponent.generated.h"
@@ -51,14 +52,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	virtual void Fire();
 
+	void ApplyDamage(AActor* OtherActor, const FHitResult& HitInfo, APhysicsProjectile* Projectile) const;
+	
 protected:
 
 	virtual void BeginPlay() override;
+	
 	/** Ends gameplay for this component. */
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 protected:
 	/** The Character holding this weapon*/
+	UPROPERTY()
 	APhysicsCharacter* Character;
 };

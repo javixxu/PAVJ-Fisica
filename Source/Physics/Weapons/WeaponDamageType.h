@@ -24,6 +24,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	EImpulseType m_ImpulseType;
 	
-	//UPROPERTY(EditAnywhere)
-	//TSubclassOf<UDamageType> m_DamageType;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UDamageType> m_DamageType;
 };

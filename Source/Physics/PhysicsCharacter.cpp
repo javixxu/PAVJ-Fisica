@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "PhysicsCharacter.h"
-#include "PhysicsProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -96,12 +95,13 @@ void APhysicsCharacter::SetIsSprinting(bool NewIsSprinting)
 {
 	bIsTryingToRun = NewIsSprinting;
 	
-	if (!NewIsSprinting){
+	if (!NewIsSprinting)
+	{
 		bBlockSprint = false;
 	}
 	
 	const bool bCanSprint = NewIsSprinting && m_CurrentStamina > 0.0f && !bBlockSprint;
-	GetCharacterMovement()->MaxWalkSpeed = bCanSprint ? m_SprintSpeed : m_WalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = bCanSprint ? m_fSprintSpeed : m_fWalkSpeed;
 }
 
 void APhysicsCharacter::Move(const FInputActionValue& Value)
@@ -140,19 +140,19 @@ void APhysicsCharacter::GrabObject(const FInputActionValue& Value)
 	if ( !m_GrabComponent){
 		const FHitResult Hit = RayCast();
 		
-		if (!Hit.GetActor() || !(Hit.GetComponent()->Mobility == EComponentMobility::Movable)){
+		if (!Hit.GetActor() || !(Hit.GetComponent()->Mobility == EComponentMobility::Movable))
 			return;
-		}
+		
 		m_GrabComponent = Hit.GetActor()->GetComponentByClass<UPrimitiveComponent>();
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, (TEXT("Grabbing: %s"), *m_GrabComponent->GetName()));
 		m_PhysicsHandle->GrabComponentAtLocationWithRotation(m_GrabComponent, Hit.BoneName, Hit.Location, Hit.GetActor()->GetActorRotation());
-		m_DistanceGrabbedObject = Hit.Distance;
+		m_fDistanceGrabbedObject = Hit.Distance;
 	}
 }
 
 void APhysicsCharacter::ReleaseObject(const FInputActionValue& Value)
 {
-	m_DistanceGrabbedObject = 0.0f;
+	m_fDistanceGrabbedObject = 0.0f;
 	m_GrabComponent = nullptr;
 	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, (TEXT("UN GRAB")));
 	m_PhysicsHandle->ReleaseComponent();
@@ -173,13 +173,15 @@ void APhysicsCharacter::SetHighlightedMesh(UMeshComponent* StaticMesh)
 
 void APhysicsCharacter::UpdateStamina(float DeltaSeconds)
 {
-	if (const bool bIsSprinting = GetCharacterMovement()->GetVelocityForNavMovement().Length() > m_WalkSpeed * 1.1f){
+	if (GetCharacterMovement()->GetVelocityForNavMovement().Length() > m_fWalkSpeed * 1.1f)
+	{
 		m_CurrentStamina= m_CurrentStamina - m_StaminaDepletionRate * DeltaSeconds;
 		m_CurrentStamina = FMath::Max(0.0f, m_CurrentStamina);
 
 		bBlockSprint = m_CurrentStamina <= KINDA_SMALL_NUMBER;
 	}
-	else{
+	else
+	{
 		m_CurrentStamina += m_StaminaRecoveryRate * DeltaSeconds;
 		m_CurrentStamina = FMath::Min(m_CurrentStamina, m_MaxStamina);
 	}
@@ -199,7 +201,8 @@ void APhysicsCharacter::FindGrabbableObjects()
 	const FHitResult Hit = RayCast();
 	
 	if (auto* MeshComponent = Cast<UMeshComponent>(Hit.GetComponent())){
-		if (MeshComponent->Mobility == EComponentMobility::Movable && MeshComponent->IsSimulatingPhysics()){
+		if (MeshComponent->Mobility == EComponentMobility::Movable && MeshComponent->IsSimulatingPhysics())
+		{
 			SetHighlightedMesh(MeshComponent);
 		}
 	}
@@ -208,10 +211,8 @@ void APhysicsCharacter::FindGrabbableObjects()
 void APhysicsCharacter::UpdateGrabbedObject()
 {
 	if (!m_GrabComponent)return;
-	
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, (TEXT("Grabbing: %s"), *m_GrabComponent->GetName()));
-	
-	FVector Forward = FirstPersonCameraComponent->GetForwardVector();
-	FVector Location = GetActorLocation() + Forward * m_DistanceGrabbedObject;
+
+	const FVector Forward = FirstPersonCameraComponent->GetForwardVector();
+	const FVector Location = GetActorLocation() + Forward * m_fDistanceGrabbedObject;
 	m_PhysicsHandle->SetTargetLocation(Location);
 }

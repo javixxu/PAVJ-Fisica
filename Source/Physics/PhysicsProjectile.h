@@ -30,6 +30,16 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Damage)
 	UPhysicsWeaponComponent* m_OwnerWeapon;
+	
+	UPROPERTY(EditAnywhere)
+	float m_Damage;
+	
+	UPROPERTY(EditAnywhere)
+	float m_Radius;
+
+	//UPROPERTY(EditAnywhere)
+	//float m_Strength;
+
 public:
 	APhysicsProjectile();
 

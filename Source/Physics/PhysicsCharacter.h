@@ -91,15 +91,15 @@ public:
 	float m_BaseInterpolationSpeed = 1000.f;
 
 	/**Sprint Speed*/
-	float m_SprintSpeed = 2000.0f;
+	float m_fSprintSpeed = 2000.0f;
 	
 	/**Walk Normal Speed*/
-	float m_WalkSpeed = 600.0f;
+	float m_fWalkSpeed = 600.0f;
 
 	bool bBlockSprint;
 	bool bIsTryingToRun = false;
 	
-	float m_DistanceGrabbedObject;
+	float m_fDistanceGrabbedObject;
 	TObjectPtr<UPrimitiveComponent> m_GrabComponent;
 	
 protected:

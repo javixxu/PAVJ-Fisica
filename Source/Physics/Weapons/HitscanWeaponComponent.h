@@ -17,7 +17,7 @@ public:
 	virtual void Fire() override;
 public:
 	UPROPERTY(EditAnywhere)
-	float m_fRange;
+	float m_Range;
 
 	UPROPERTY(BlueprintAssignable)
 	FHitscanImpact onHitscanImpact;

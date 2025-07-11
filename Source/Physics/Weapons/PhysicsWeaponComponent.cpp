@@ -13,12 +13,13 @@
 #include "Engine/World.h"
 #include <Components/SphereComponent.h>
 
+#include "PhysicsProjectile.h"
+
 // Sets default values for this component's properties
 UPhysicsWeaponComponent::UPhysicsWeaponComponent()
 {
 	// Default offset from the character location for projectiles to spawn
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
-
 }
 
 void UPhysicsWeaponComponent::BeginPlay()
@@ -102,4 +103,30 @@ void UPhysicsWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	// maintain the EndPlay call chain
 	Super::EndPlay(EndPlayReason);
+}
+
+void UPhysicsWeaponComponent::ApplyDamage(AActor* OtherActor, const FHitResult& HitInfo, APhysicsProjectile* Projectile) const
+{
+	if (!OtherActor || !m_WeaponDamageType)
+		return;
+
+	switch (m_WeaponDamageType->m_ImpulseType)
+	{
+	case EImpulseType::RAY:
+		UGameplayStatics::ApplyPointDamage(OtherActor,m_WeaponDamageType->m_Damage,HitInfo.ImpactNormal * -1.0f, HitInfo,
+			Character->GetController(), Character, m_WeaponDamageType->m_DamageType);
+		break;
+	case EImpulseType::POINT:
+		UGameplayStatics::ApplyPointDamage(OtherActor,m_WeaponDamageType->m_Damage,Projectile->GetVelocity(), HitInfo,
+			Character->GetController(),Projectile, m_WeaponDamageType->m_DamageType);
+		break;
+	case EImpulseType::RADIAL:
+		UGameplayStatics::ApplyRadialDamage(GetWorld(),m_WeaponDamageType->m_Damage,Projectile->GetActorLocation(),
+			Projectile->m_Radius, m_WeaponDamageType->m_DamageType,{Character}, Projectile,Character->GetController());
+		break;
+	default:
+		UGameplayStatics::ApplyDamage(OtherActor, m_WeaponDamageType->m_Damage, Character->GetController(),
+			Character, m_WeaponDamageType->m_DamageType);
+		break;
+	}
 }
