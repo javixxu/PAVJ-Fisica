@@ -37,9 +37,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	float m_Radius;
 
-	//UPROPERTY(EditAnywhere)
-	//float m_Strength;
-
 public:
 	APhysicsProjectile();
 
