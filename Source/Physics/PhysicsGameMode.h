@@ -5,6 +5,7 @@
 #include "PhysicsGameMode.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWinConditionMet);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLoseConditionMet);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTargetCountChange);
 
 class ABreakableTarget;
@@ -27,6 +28,8 @@ protected:
 public:
 	UPROPERTY(BlueprintAssignable)
 	FWinConditionMet OnWinConditionMet;
+	UPROPERTY(BlueprintAssignable)
+	FWinConditionMet OnLoseConditionMet;
 	UPROPERTY(BlueprintAssignable)
 	FTargetCountChange OnTargetCountChange;
 

@@ -13,6 +13,9 @@
 #include <Components/StaticMeshComponent.h>
 #include <PhysicsEngine/PhysicsHandleComponent.h>
 
+#include "PhysicsGameMode.h"
+#include "Kismet/GameplayStatics.h"
+
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 APhysicsCharacter::APhysicsCharacter()
@@ -109,6 +112,15 @@ void APhysicsCharacter::SetIsSprinting(bool NewIsSprinting)
 void APhysicsCharacter::ChangeLife(float LifeAmount)
 {
 	m_CurrentHealth += LifeAmount;
+	if (m_CurrentHealth > m_MaxHealth)
+	{
+		m_CurrentHealth = m_MaxHealth;
+	}
+	else if (m_CurrentHealth <= 0)
+	{
+		const APhysicsGameMode* GameMode = Cast<APhysicsGameMode>(UGameplayStatics::GetGameMode(this));
+		GameMode->OnLoseConditionMet.Broadcast();
+	}
 }
 
 void APhysicsCharacter::Move(const FInputActionValue& Value)
